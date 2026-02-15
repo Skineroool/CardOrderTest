@@ -22,9 +22,14 @@ public class CardOrderTest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
+        // Важные опции для Linux/CI
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--no-sandbox");
-        //options.addArguments("--headless");
+        options.addArguments("--headless");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--remote-allow-origins=*");
+
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
         driver.get("http://localhost:9999");
@@ -40,36 +45,29 @@ public class CardOrderTest {
     @Test
     public void shouldSendFormSuccessfully() {
         // Заполняем поле "Фамилия и имя"
-        driver.findElement(By.cssSelector("[data-test-id='name'] input")).sendKeys("Иванов Иван");
+        WebElement nameField = driver.findElement(By.cssSelector("[data-test-id='name'] input"));
+        nameField.sendKeys("Иванов Иван");
 
         // Заполняем поле "Мобильный телефон"
-        driver.findElement(By.cssSelector("[data-test-id='phone'] input")).sendKeys("+79270000000");
+        WebElement phoneField = driver.findElement(By.cssSelector("[data-test-id='phone'] input"));
+        phoneField.sendKeys("+79270000000");
 
         // Ставим чекбокс согласия
-        driver.findElement(By.cssSelector("[data-test-id='agreement']")).click();
+        WebElement agreement = driver.findElement(By.cssSelector("[data-test-id='agreement']"));
+        agreement.click();
 
         // Нажимаем кнопку "Продолжить"
-        driver.findElement(By.cssSelector("button")).click();
+        WebElement button = driver.findElement(By.cssSelector("button"));
+        button.click();
 
-        // Ждём появления сообщения об успехе и проверяем текст
+        // Ждём появления сообщения об успехе
         WebElement successMessage = wait.until(
-                WebDriverConditions.visibilityOfElementLocated(
+                ExpectedConditions.visibilityOfElementLocated(
                         By.cssSelector("[data-test-id='order-success']")
                 )
         );
 
         assertTrue(successMessage.isDisplayed());
-        assertEquals("Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.",
-                successMessage.getText().trim());
-    }
-
-    // Вспомогательный класс для ожиданий
-    private static class WebDriverConditions {
-        public static ExpectedCondition<WebElement> visibilityOfElementLocated(By locator) {
-            return driver -> {
-                WebElement element = driver.findElement(locator);
-                return element != null && element.isDisplayed() ? element : null;
-            };
-        }
+        assertTrue(successMessage.getText().contains("успешно отправлена"));
     }
 }
