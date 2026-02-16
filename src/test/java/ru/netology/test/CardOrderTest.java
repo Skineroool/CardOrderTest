@@ -65,3 +65,4 @@ public class CardOrderTest {
 
         assertEquals(expectedText, actualText, "Текст сообщения об успехе не соответствует ожидаемому");
     }
+}
