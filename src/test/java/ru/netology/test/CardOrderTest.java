@@ -22,13 +22,9 @@ public class CardOrderTest {
     @BeforeEach
     public void setUp() {
         ChromeOptions options = new ChromeOptions();
-        // Важные опции для Linux/CI
         options.addArguments("--disable-dev-shm-usage");
         options.addArguments("--no-sandbox");
         options.addArguments("--headless");
-        options.addArguments("--window-size=1920,1080");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--remote-allow-origins=*");
 
         driver = new ChromeDriver(options);
         wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -45,20 +41,16 @@ public class CardOrderTest {
     @Test
     public void shouldSendFormSuccessfully() {
         // Заполняем поле "Фамилия и имя"
-        WebElement nameField = driver.findElement(By.cssSelector("[data-test-id='name'] input"));
-        nameField.sendKeys("Иванов Иван");
+        driver.findElement(By.cssSelector("[data-test-id='name'] input")).sendKeys("Иванов Иван");
 
         // Заполняем поле "Мобильный телефон"
-        WebElement phoneField = driver.findElement(By.cssSelector("[data-test-id='phone'] input"));
-        phoneField.sendKeys("+79270000000");
+        driver.findElement(By.cssSelector("[data-test-id='phone'] input")).sendKeys("+79270000000");
 
         // Ставим чекбокс согласия
-        WebElement agreement = driver.findElement(By.cssSelector("[data-test-id='agreement']"));
-        agreement.click();
+        driver.findElement(By.cssSelector("[data-test-id='agreement']")).click();
 
         // Нажимаем кнопку "Продолжить"
-        WebElement button = driver.findElement(By.cssSelector("button"));
-        button.click();
+        driver.findElement(By.cssSelector("button")).click();
 
         // Ждём появления сообщения об успехе
         WebElement successMessage = wait.until(
@@ -67,7 +59,9 @@ public class CardOrderTest {
                 )
         );
 
-        assertTrue(successMessage.isDisplayed());
-        assertTrue(successMessage.getText().contains("успешно отправлена"));
+        // ТОЛЬКО ЭТА ЧАСТЬ НОВАЯ - точная проверка текста
+        String expectedText = "Ваша заявка успешно отправлена! Наш менеджер свяжется с вами в ближайшее время.";
+        String actualText = successMessage.getText().trim();
+
+        assertEquals(expectedText, actualText, "Текст сообщения об успехе не соответствует ожидаемому");
     }
-}
